@@ -1,0 +1,325 @@
+U ovo codu mzeo upload nas Target image, overlay image, marker pattern I marker image,
+nakon sto cliknemo na create dobijemo popup sa nasim url, qr, ar marker koju smo sliku uploadovali
+I dobijemo download button za nas qr code.  
+Posto code ne mozemo cijeli upload u wordpres moramo paste u drugi code samo nas eksterni link:
+
+https://bramble-sphenoid-mortarboard.glitch.me
+
+Ovako izgleda code u wordpressu:
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AR Marker Generator</title>
+  <style>
+    /* Container for the second iframe to center it */
+    .iframe-container {
+      display: flex;               /* Using flexbox for centering */
+      justify-content:center;     /* Centering horizontally */
+      margin: 20px 0;             /* Margin for spacing between sections */
+    }
+
+    /* Style for iframes */
+    iframe {
+      border: 1px solid #ccc;      /* Optional border for iframes */
+      width: 80%;                  /* Adjust width as needed */
+      max-width: 600px;           /* Optional max width */
+      height: 600px;              /* Set the height of iframes */
+    }
+  </style>
+</head>
+<body>
+  <h1>   </h1>
+  
+  
+  <!-- Second Embedded HTML Page -->
+  <div class="iframe-container">
+    <iframe src="https://bramble-sphenoid-mortarboard.glitch.me"></iframe>
+  </div>
+</body>
+</html>
+
+
+
+
+
+A ovo je originalni code koji se ne moze upload direktno vec samo preko linka https://bramble-sphenoid-mortarboard.glitch.me 
+Code: 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Image AR Generator</title>
+  <style>
+    /* Center the body content */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Existing CSS styles */
+    .output {
+      margin-top: 20px;
+      border: 1px solid #ddd;
+      padding: 10px;
+      white-space: pre-wrap;
+    }
+
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .modal-content {
+      background-color: yellow;
+      border: 4px solid black;
+      padding: 20px;
+      width: 80%;
+      max-width: 500px;
+      text-align: center;
+      border-radius: 10px;
+      position: relative;
+      cursor: move;
+    }
+    .modal-content a {
+      font-weight: bold;
+      color: #0056b3;
+      text-decoration: none;
+    }
+    .qr-code, .ar-marker {
+      margin: 15px auto;
+      width: 150px;
+      height: 150px;
+      background-color: white;
+      padding: 10px;
+      border: 2px solid black;
+      box-sizing: content-box;
+      display: inline-block;
+    }
+    .close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      color: black;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+    .download-link {
+      display: block;
+      margin-top: 10px;
+      color: blue;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    #hidden-qrcode {
+      display: none;
+    }
+  </style>
+  <!-- Libraries -->
+  <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+</head>
+<body>
+  <h1>Image AR Generator</h1>
+  <form onsubmit="event.preventDefault(); generateHTML();" style="max-width: 400px; width: 100%;">
+    <label for="imageTargetUpload">Upload Target Image:</label><br>
+    <input type="file" id="imageTargetUpload" name="imageTargetUpload" accept="image/*" required><br><br>
+
+    <label for="imageOverlayUpload">Upload Overlay Image:</label><br>
+    <input type="file" id="imageOverlayUpload" name="imageOverlayUpload" accept="image/*" required><br><br>
+    
+    <label for="patternUpload">Upload Pattern File (.patt):</label><br>
+    <input type="file" id="patternUpload" name="patternUpload" accept=".patt" required><br><br>
+
+    <!-- New AR Marker Image Upload Field -->
+    <label for="arMarkerUpload">Upload AR Marker Image:</label><br>
+    <input type="file" id="arMarkerUpload" name="arMarkerUpload" accept="image/*" required><br><br>
+
+    <button type="submit">Generate HTML</button>
+  </form>
+  <div id="output" class="output"></div>
+
+  <!-- Hidden Div for QRCode.js -->
+  <div id="hidden-qrcode"></div>
+
+  <script>
+    async function generateHTML() {
+      const imageTargetFile = document.getElementById('imageTargetUpload').files[0];
+      const imageOverlayFile = document.getElementById('imageOverlayUpload').files[0];
+      const patternFile = document.getElementById('patternUpload').files[0];
+      const arMarkerFile = document.getElementById('arMarkerUpload').files[0]; // New AR Marker file
+
+      // Convert uploaded files to Data URLs
+      const imageTargetUrl = await fileToDataUrl(imageTargetFile);
+      const imageOverlayUrl = await fileToDataUrl(imageOverlayFile);
+      const patternUrl = await fileToDataUrl(patternFile);
+      const arMarkerUrl = await fileToDataUrl(arMarkerFile); // Convert AR Marker to Data URL
+
+      // Generate output HTML
+      const outputHTML = `
+         &lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;AR Content&lt;/title&gt;
+    &lt;script src="https://aframe.io/releases/1.3.0/aframe.min.js"&gt;&lt;/script&gt;
+    &lt;script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"&gt;&lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;a-scene embedded arjs&gt;
+      &lt;a-marker type="pattern" url="${patternUrl}"&gt;
+        &lt;a-image src="${imageOverlayUrl}"
+                 scale="1 1 1"
+                 position="0 0 0"
+                 width="10"
+                 height="10"
+                 rotation="-90 0 0"&gt;&lt;/a-image&gt;
+      &lt;/a-marker&gt;
+      &lt;a-entity camera&gt;&lt;/a-entity&gt;
+    &lt;/a-scene&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+      `;
+
+      const rawHTML = outputHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+      const linkUrl = await uploadToGitHub(rawHTML);
+      showModal(linkUrl, arMarkerUrl); // Pass arMarkerUrl to showModal
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function uploadToGitHub(rawHTML) {
+      const owner = 'Boks-Boks';
+      const repo = 'storage';
+      const path = `generated-${Date.now()}.html`;
+      const message = 'Upload generated HTML';
+      const content = btoa(unescape(encodeURIComponent(rawHTML)));
+      const token = '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';
+
+      try {
+        const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: message,
+            content: content,
+            branch: 'gh-pages'
+          })
+        });
+
+        const result = await response.json();
+        return response.ok ? `https://${owner}.github.io/${repo}/${path}` : 'Error uploading file.';
+      } catch (error) {
+        console.error('Error uploading to GitHub:', error);
+        return 'Error uploading file.';
+      }
+    }
+
+    function showModal(linkUrl, arMarkerUrl) { // Accept arMarkerUrl as parameter
+      const modal = document.createElement('div');
+      modal.id = 'myModal';
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <div class="modal-content" id="draggableModal">
+          <button class="close" onclick="closeModal()">&times;</button>
+          <div>
+            <p>Link to your file:</p>
+            <a href="${linkUrl}" target="_blank">${linkUrl}</a>
+          </div>
+          <div>
+            <p>QR Code:</p>
+            <img id="qrcodeImg" class="qr-code" alt="QR Code">
+          </div>
+          <div>
+            <p>AR Marker:</p>
+            <img src="${arMarkerUrl}" alt="Uploaded AR Marker" class="ar-marker">
+          </div>
+          <a id="downloadLink" class="download-link" href="#" download="qr_code.png">Download QR Code</a>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      modal.style.display = 'block';
+
+      makeModalDraggable(document.getElementById('draggableModal'));
+
+      if (linkUrl.startsWith('http')) {
+        const hiddenDiv = document.getElementById('hidden-qrcode');
+        hiddenDiv.innerHTML = '';
+        const qrCode = new QRCode(hiddenDiv, {
+          text: linkUrl,
+          width: 150,
+          height: 150,
+          correctLevel: QRCode.CorrectLevel.H
+        });
+
+        setTimeout(function() {
+          const qrCanvas = hiddenDiv.querySelector('canvas');
+          if (qrCanvas) {
+            const qrDataUrl = qrCanvas.toDataURL('image/png');
+            document.getElementById('qrcodeImg').src = qrDataUrl;
+            document.getElementById('downloadLink').href = qrDataUrl;
+          }
+        }, 500);
+      }
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('myModal');
+      if (modal) {
+        modal.style.display = 'none';
+        document.body.removeChild(modal);
+      }
+    }
+
+    function makeModalDraggable(modal) {
+      let isDragging = false, offsetX, offsetY;
+
+      modal.onmousedown = (e) => {
+        isDragging = true;
+        offsetX = e.clientX - modal.offsetLeft;
+        offsetY = e.clientY - modal.offsetTop;
+      };
+
+      document.onmousemove = (e) => {
+        if (isDragging) {
+          modal.style.left = `${e.clientX - offsetX}px`;
+          modal.style.top = `${e.clientY - offsetY}px`;
+        }
+      };
+
+      document.onmouseup = () => {
+        isDragging = false;
+      };
+    }
+  </script>
+</body>
+</html>
